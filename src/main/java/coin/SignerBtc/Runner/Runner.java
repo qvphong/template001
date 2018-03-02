@@ -12,7 +12,10 @@ public class Runner implements CommandLineRunner {
   SignerController signerController;
   
   public void run(String... arg0) throws Exception {
-    Double fl = signerController.callApi();
-    System.out.println("---------- " + fl + " -----------");
+    while (true) {
+      Double fl = signerController.callApi();
+      System.out.println("---------- " + fl + " -----------");
+      Thread.sleep(60000);
+    }
   }
 }
