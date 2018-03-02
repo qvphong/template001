@@ -12,7 +12,7 @@ public class Runner implements CommandLineRunner {
   SignerController signerController;
   
   public void run(String... arg0) throws Exception {
-    Float fl = signerController.callApi();
+    Double fl = signerController.callApi();
     System.out.println("---------- " + fl + " -----------");
   }
 }
