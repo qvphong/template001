@@ -1,58 +1,76 @@
 package coin.SignerBtc.Controller;
 
-import javax.naming.spi.DirObjectFactory;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContexts;
-import org.json.JSONObject;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+
+import com.binance.api.client.BinanceApiClientFactory;
+import com.binance.api.client.BinanceApiRestClient;
+import com.binance.api.client.BinanceApiWebSocketClient;
+import com.binance.api.client.domain.account.Order;
+import com.binance.api.client.domain.account.request.OrderRequest;
+import com.binance.api.client.domain.market.CandlestickInterval;
+import com.webcerebrium.binance.api.BinanceApiException;
+
+import coin.SignerBtc.Service.DepthTrade;
+import coin.SignerBtc.Service.OrderService;
+import coin.SignerBtc.Utils.Constants;
 
 @Component
 public class SignerController {
+	
+	@Autowired
+	private DepthTrade depthTrade;
 
-  RestTemplate restTemplate = getRestTemplate();
-  private String url = "https://api.coindesk.com/v1/bpi/currentprice/btc.json";
+	@Value("${current.trade.symbol}")
+	private String currentTrade;
 
+	@Value("${api.key}")
+	private String apiKey;
 
+	@Value("${api.secret}")
+	private String apiSecret;
 
-  public Double callApi() {
-    ResponseEntity<String> res = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
-    JSONObject jsonObj = new JSONObject(res.getBody());
-    JSONObject bpi = (JSONObject) jsonObj.get("bpi");
-    JSONObject usd = (JSONObject) bpi.get("USD");
-    Double rate = (Double) usd.get("rate_float");
-    return rate;
-  }
-  
-  private RestTemplate getRestTemplate() {
-    HttpComponentsClientHttpRequestFactory httpClientFactory = new HttpComponentsClientHttpRequestFactory();
-    RestTemplate restTemplate = null;
-    try {
-      SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
-      SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, new HostnameVerifier() {
-        public boolean verify(String hostname, SSLSession session) {
-          return true;
-        }
+	@Value("${amount.btc}")
+	private String amountBtc;
 
-      });
-      httpClientFactory.setHttpClient(HttpClients.custom().setSSLSocketFactory(sslsf).build());
-    } catch (Exception e1) {
-    }
+	@Value("${distand}")
+	private String distand;
+	
+	// private DecimalFormat df = new DecimalFormat("#.#");
 
-    restTemplate = new RestTemplate(httpClientFactory);
-    restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-    restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-    return restTemplate;
-  }
+	@Autowired
+	private OrderService orderService;
+
+	public void getCurrentPrice() {
+		BinanceApiWebSocketClient client = BinanceApiClientFactory.newInstance().newWebSocketClient();
+		client.onCandlestickEvent(Constants.BTC_USDT, CandlestickInterval.ONE_MINUTE, response -> System.out.println(response));
+	}
+
+	public void order() {
+		BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(apiKey, apiSecret);
+		BinanceApiRestClient client = factory.newRestClient();
+		BigDecimal distandVal = new BigDecimal(distand);
+		
+		// Getting list of open orders
+		List<Order> openOrders = client.getOpenOrders(new OrderRequest(Constants.BTC_USDT));
+		System.out.println(openOrders);
+		if (!openOrders.isEmpty()) {
+			orderService.cancelAllOrder(client, openOrders);
+		}
+
+		BinanceApiWebSocketClient client1 = BinanceApiClientFactory.newInstance().newWebSocketClient();
+		client.ping();
+		orderService.buy(Constants.BTC_USDT, "0.001", client1, client, distandVal);
+	}
+
+	public void depthController(String symbol) throws BinanceApiException {
+		BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(apiKey, apiSecret);
+		BinanceApiRestClient client = factory.newRestClient();
+		depthTrade.depth(client,symbol);
+	}
 
 }
