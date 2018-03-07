@@ -82,5 +82,11 @@
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.7.10</version>
 		</dependency>
+		<dependency>
+			<groupId>com.restfb</groupId>
+			<artifactId>restfb</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+
 	</dependencies>
 </project>
