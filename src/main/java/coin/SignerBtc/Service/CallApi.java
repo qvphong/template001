@@ -112,28 +112,8 @@ public class CallApi {
 		}
 		return null;
 	}
-
-	static String user_access = "EAAIRss3YOh4BAP0NPT2bc1jzzIZCypZBJ0fnWptIzaGu3VhEmOZApYUkspSn9UdrNIXBP0eKVLhwNMLZBDYQYbiHRlaD1H18ybVuaOJuYZBpuOqDqKjacY7yKdPATqfyGZBCZB1sxMCJAoTuAcOX6fKXSsQwsqUvljF6ATCBi6uQWrRhefxEl3oFiFZAtV2oZAYUPH683JdO72wZDZD";
-	static String page_token = "582409608772126|beyCrUVwMlsaG5RVyBrPXftX2TM";
-	private static String urlpost = "https://graph.facebook.com/v2.12/me/messages?access_token=" + user_access;
-	private static String urlGet = "https://graph.facebook.com/v2.6/100001067544868?fields=name,age_range,ids_for_apps,ids_for_pages&access_token=" + page_token;
-	static String getMail = "https://graph.facebook.com/v2.12/me/inbox?access_token=EAAIRss3YOh4BADn5KnrQmGwkr2Q9ci3gaeybF0ZAyVnDwYZCpZBKMz3ZB1eKNuubMmCFVUVsKqtNhZBO4t3kOQb8hxGrYEEEkZAKBBvjAQS66Fx0Sp9kXlYcGwah9cYciauHLyVzj2sTMQRH2w60VwwklaFLvgohpvQAlNlG1Y3mgrT9bFsApu8lWhZCu95lAYJ2vlM3D1lgAZDZD";
-	static String conversation_page = "https://graph.facebook.com/v2.12/2061886637161446/messages?access_token=EAACEdEose0cBACsbrLUPQSzVXq5TqbeMv9kGfeZAr2ZAPCWH2qpD7E2bzXZAN0m5vI34i1D1VUN1Xy4lyAbZB8jf6N7izqMbuZB6p4HLcoiQ7WK7bouHgdgtDiDO4iHbHgBBNUEJDiMFtCj34SSnlGDqZCdRsMryv82LqMSsNWUDbMXjrn4JwZCLLhGB5ODWG62Wi5cTIBbZAgZDZD";
-
+	
 	public static void main(String[] args) {
-		// System.out.println(getMethod(conversation_page));
-		// System.out.println(postMethod("t_100001067544868", "test", urlpost));
-		callRestFb();
 	}
 
-	public static void callRestFb() {
-		String pageAccessToken = "EAACEdEose0cBAEVZCFbMAXtWwDg3jKZBTaC6PsoBBHiZCPz1XxfTrfQAwBtDbF2WqpRx7Ix7AGDq7LZA5rZAwtpBLMwZAfjVbcuFraCPZBhjGiXuIo9DlIfvxvPuBVu0EkUS5ZB5Q0TMCpxwDkteWE1iCZAJZCZB9FTIj7qDs8j4FyS0KN16p1oZAADnqGzpvlPmj1yLsvlDOkt6nQZDZD";
-
-		FacebookClient pageClient = new DefaultFacebookClient(pageAccessToken, Version.VERSION_2_6);
-		IdMessageRecipient recipient = new IdMessageRecipient("1607108626069359");
-		Message simpleTextMessage = new Message("Just a simple text");
-		SendResponse resp = pageClient.publish("me/messages", SendResponse.class, Parameter.with("recipient", recipient),
-				Parameter.with("message", simpleTextMessage)); // one of the messages from above
-		System.out.println(resp);
-	}
 }
