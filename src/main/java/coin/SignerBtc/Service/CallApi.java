@@ -127,10 +127,10 @@ public class CallApi {
 	}
 
 	public static void callRestFb() {
-		String pageAccessToken = "EAACEdEose0cBABakwhtWiClkhXzfohNPR0V8QsLEtOQbtQd3jnZAWDrdmQYbu60gqxnu9Q8clTbpvRCUIZBklt0tgNAqrMVrwyqlZCOPa7f8BZBNZC5hvCOobcmEl3ExMGvur5r9h19VNUBfxnCvgZAIW1vLDoGf95jICLRkYo3sNt0EDA6euyieoJU7PRvK2imrAhF08BmAZDZD";
+		String pageAccessToken = "EAACEdEose0cBAEVZCFbMAXtWwDg3jKZBTaC6PsoBBHiZCPz1XxfTrfQAwBtDbF2WqpRx7Ix7AGDq7LZA5rZAwtpBLMwZAfjVbcuFraCPZBhjGiXuIo9DlIfvxvPuBVu0EkUS5ZB5Q0TMCpxwDkteWE1iCZAJZCZB9FTIj7qDs8j4FyS0KN16p1oZAADnqGzpvlPmj1yLsvlDOkt6nQZDZD";
 
 		FacebookClient pageClient = new DefaultFacebookClient(pageAccessToken, Version.VERSION_2_6);
-		IdMessageRecipient recipient = new IdMessageRecipient("100001067544868");
+		IdMessageRecipient recipient = new IdMessageRecipient("1607108626069359");
 		Message simpleTextMessage = new Message("Just a simple text");
 		SendResponse resp = pageClient.publish("me/messages", SendResponse.class, Parameter.with("recipient", recipient),
 				Parameter.with("message", simpleTextMessage)); // one of the messages from above
