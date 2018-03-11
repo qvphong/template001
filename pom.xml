@@ -5,7 +5,7 @@
 	<groupId>coin</groupId>
 	<artifactId>SignerBtc</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 
 	<name>SignerBtc</name>
 	<url>http://maven.apache.org</url>
