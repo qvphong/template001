@@ -7,6 +7,7 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 public class ScreenShoot {
 
@@ -19,7 +20,9 @@ public class ScreenShoot {
   public static void TestJavaS1() {
     System.setProperty("webdriver.chrome.driver", "c:/chromedriver.exe");
     if (driver == null) {
-      driver = new ChromeDriver();
+    	ChromeOptions options = new ChromeOptions();
+    	options.addArguments("--headless");
+      driver = new ChromeDriver(options);
       driver.manage().window().maximize();
     }
     driver.get("https://translate.google.com/");
