@@ -28,7 +28,7 @@ public class FacebookService {
 	// @Value("${signer.secret}")
 	// private static String appSecret;
 
-	public Set<String> senderLst = new HashSet<>();
+	public Set<String> senderLst = new HashSet<String>();
 
 	private Logger logger = LoggerFactory.getLogger(FacebookService.class);
 
