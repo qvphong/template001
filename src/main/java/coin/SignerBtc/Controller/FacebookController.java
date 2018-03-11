@@ -29,6 +29,12 @@ public class FacebookController {
 	private FacebookService facebookService;
 
 	private Logger logger = LoggerFactory.getLogger(FacebookController.class);
+	
+	@RequestMapping(value = "/", method = RequestMethod.GET)
+	public ResponseEntity<String> root(HttpServletRequest request, HttpServletResponse response) {
+		return ResponseEntity.status(HttpStatus.OK).body("Ok");
+	}
+	
 
 	@RequestMapping(value = "/webhook", method = RequestMethod.POST)
 	@ResponseBody
