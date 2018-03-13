@@ -89,7 +89,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>App.class</mainClass>
+							<mainClass>coin.SignerBtc.App</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
