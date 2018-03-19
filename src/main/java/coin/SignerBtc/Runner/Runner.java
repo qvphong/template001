@@ -40,6 +40,6 @@ public class Runner implements CommandLineRunner {
 	
 	@PostConstruct
 	public void contruct() {
-		faceService.senderLst.add("1607108626069359");
+//		faceService.senderLst.add("1607108626069359");
 	}
 }

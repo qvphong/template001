@@ -18,6 +18,7 @@ import com.webcerebrium.binance.api.BinanceApi;
 
 import coin.SignerBtc.Service.FacebookService;
 import coin.SignerBtc.Service.ScanAllSymbol;
+import coin.SignerBtc.Service.TelegramMessage;
 import coin.SignerBtc.Utils.Constants;
 
 @Controller
@@ -28,6 +29,9 @@ public class ScanPriceController {
 
 	@Autowired
 	private FacebookService facebookService;
+	
+	@Autowired
+	TelegramMessage telegramMess;
 	
 	/* BTC or BTCUSDT or ...*/
 	private String symbolCompare = "BTC";
@@ -70,7 +74,8 @@ public class ScanPriceController {
 						if (signerPrice.containsKey(key) && scanService.IsUpTrend(lstNew)) {
 							symbolToTrackDownTrend.add(key);
 							symbolWorking.remove(key);
-							facebookService.sendTextMessage("=> Coin đang tăng: " + key);
+//							facebookService.sendTextMessage("=> Coin đang tăng: " + key);
+							telegramMess.sendToChannel("=> Coin đang tăng: " + key + " https://www.binance.com/trade.html?symbol=" + key);
 						}
 					}
 					mapPrice.put(key, lstNew);
