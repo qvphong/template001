@@ -1,6 +1,8 @@
 package coin.SignerBtc.Controller;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,37 +31,36 @@ public class ScanPriceController {
 
 	@Autowired
 	private FacebookService facebookService;
-	
+
 	@Autowired
 	TelegramMessage telegramMess;
-	
-	/* BTC or BTCUSDT or ...*/
+
+	/* BTC or BTCUSDT or ... */
 	private String symbolCompare = "BTC";
 
 	private BinanceApi api = new BinanceApi();
 	private Set<String> symbolWorking = new HashSet<String>();
-	private Set<String> symbolToTrackDownTrend = new HashSet<String>(); 
+	private Set<String> symbolToTrackDownTrend = new HashSet<String>();
 	private Map<String, LinkedList<BigDecimal>> mapPrice = new HashMap<String, LinkedList<BigDecimal>>();
 	private Map<String, Integer> signerPrice = new HashMap<String, Integer>();
 	private Logger logger = LoggerFactory.getLogger(ScanPriceController.class);
-	
+
 	public void scanSigner() {
 		try {
 			logger.info("Scan signer is working ***********************");
-			
+
 			Map<String, BigDecimal> maps = scanService.scanAll(api);
-			
+
 			for (String key : maps.keySet()) {
 				/* check price < 2$ and check name */
-				symbolWorking.add("BCPTBTC");
 				if (symbolWorking.isEmpty()) {
 					symbolWorking = scanService.filterPrice(maps, symbolCompare);
 				}
-				
+
 				if (!symbolWorking.contains(key)) {
 					continue;
 				}
-				
+
 				/* not have value yet */
 				if (mapPrice.get(key) == null) {
 					LinkedList<BigDecimal> lstNew = new LinkedList<BigDecimal>();
@@ -71,11 +72,15 @@ public class ScanPriceController {
 					lstNew.addLast(maps.get(key));
 					if (lstNew.size() >= 5) {
 						lstNew.removeFirst();
-						if (signerPrice.containsKey(key) && scanService.IsUpTrend(lstNew)) {
+						// if (signerPrice.containsKey(key) &&
+						// scanService.IsUpTrend(lstNew)) {
+						int size = lstNew.size();
+						if (signerPrice.containsKey(key)&& comparePriceChange(lstNew.get(size - 3), lstNew.get(size - 2), lstNew.get(size - 1))) {
 							symbolToTrackDownTrend.add(key);
-							symbolWorking.remove(key);
-//							facebookService.sendTextMessage("=> Coin đang tăng: " + key);
+							//symbolWorking.remove(key);
+							// facebookService.sendTextMessage("=> Coin đang tăng: " + key);
 							telegramMess.sendToChannel("=> Coin đang tăng: " + key + " https://www.binance.com/trade.html?symbol=" + key);
+							logger.info("Up: " + key);
 						}
 					}
 					mapPrice.put(key, lstNew);
@@ -89,51 +94,40 @@ public class ScanPriceController {
 					mapPrice.put(key, lstNew);
 					signerPrice.put(key, Constants.DOWN_TREND);
 				}
-				
+
 				/* check if symbol down */
-				
+
 			}
 		} catch (Exception e) {
 			logger.error("ScanPriceController Error: {}", e);
 		}
 	}
 	
-	/*public void scanPrice() {
-		try {
-			Map<String, BigDecimal> maps = scanService.scanAll(api);
-			for (String key : maps.keySet()) {
-				 check name
-				if (!scanService.filterName(key, symbolCompare)) {
-					continue;
-				}
-				 check price < 2$
-				if (!scanService.filterPrice(maps.get(key))) {
-					continue;
-				}
-				 not have value yet 
-				if (mapPrice.get(key) == null) {
-					List<BigDecimal> lstNew = new ArrayList<>();
-					lstNew.add(maps.get(key));
-					mapPrice.put(key, lstNew);
-				} else if (mapPrice.get(key).get(mapPrice.get(key).size() - 1).compareTo(maps.get(key)) < 0) {
-					List<BigDecimal> lstNew = mapPrice.get(key);
-					lstNew.add(maps.get(key));
-					if (lstNew.size() >= 5) {
-						facebookService.sendTextMessage("=> Coin đang tăng: " + key);
-						mapPrice.put(key, null);
-					} else {
-						mapPrice.put(key, lstNew);
-					}
-				} else if (mapPrice.get(key).get(mapPrice.get(key).size() - 1).compareTo(maps.get(key)) > 0) {
-					if (mapPrice.get(key).size() == 4) {
-						facebookService.sendTextMessage("=> Coin đang giảm: " + key);
-					}
-					mapPrice.put(key, null);
-				}
-			}
-		} catch (Exception e) {
-			logger.error("ScanPriceController Error: {}", e);
+	public Boolean comparePriceChange(BigDecimal num1, BigDecimal num2, BigDecimal num3) {
+		MathContext mc = new MathContext(2, RoundingMode.HALF_UP);
+		if (num3.divide(num2.subtract(num1), mc).compareTo(new BigDecimal("3")) >= 0) {
+			return true;
 		}
-	}*/
-	
+		return false;
+	}
+
+	/*
+	 * public void scanPrice() { try { Map<String, BigDecimal> maps =
+	 * scanService.scanAll(api); for (String key : maps.keySet()) { check name if
+	 * (!scanService.filterName(key, symbolCompare)) { continue; } check price <
+	 * 2$ if (!scanService.filterPrice(maps.get(key))) { continue; } not have
+	 * value yet if (mapPrice.get(key) == null) { List<BigDecimal> lstNew = new
+	 * ArrayList<>(); lstNew.add(maps.get(key)); mapPrice.put(key, lstNew); } else
+	 * if (mapPrice.get(key).get(mapPrice.get(key).size() -
+	 * 1).compareTo(maps.get(key)) < 0) { List<BigDecimal> lstNew =
+	 * mapPrice.get(key); lstNew.add(maps.get(key)); if (lstNew.size() >= 5) {
+	 * facebookService.sendTextMessage("=> Coin đang tăng: " + key);
+	 * mapPrice.put(key, null); } else { mapPrice.put(key, lstNew); } } else if
+	 * (mapPrice.get(key).get(mapPrice.get(key).size() -
+	 * 1).compareTo(maps.get(key)) > 0) { if (mapPrice.get(key).size() == 4) {
+	 * facebookService.sendTextMessage("=> Coin đang giảm: " + key); }
+	 * mapPrice.put(key, null); } } } catch (Exception e) {
+	 * logger.error("ScanPriceController Error: {}", e); } }
+	 */
+
 }
