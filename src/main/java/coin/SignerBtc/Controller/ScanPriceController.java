@@ -1,133 +1,161 @@
 package coin.SignerBtc.Controller;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import javax.imageio.ImageIO;
+import org.jfree.data.xy.DefaultHighLowDataset;
+import org.jfree.ui.RefineryUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-
-import com.webcerebrium.binance.api.BinanceApi;
-
+import coin.SignerBtc.Service.CandlestickChart;
 import coin.SignerBtc.Service.FacebookService;
 import coin.SignerBtc.Service.ScanAllSymbol;
 import coin.SignerBtc.Service.TelegramMessage;
 import coin.SignerBtc.Utils.Constants;
+import com.webcerebrium.binance.api.BinanceApi;
+import com.webcerebrium.binance.api.BinanceApiException;
+import com.webcerebrium.binance.datatype.BinanceCandlestick;
+import com.webcerebrium.binance.datatype.BinanceSymbol;
 
 @Controller
 public class ScanPriceController {
 
-	@Autowired
-	private ScanAllSymbol scanService;
+  @Autowired
+  private ScanAllSymbol scanService;
 
-	@Autowired
-	private FacebookService facebookService;
+  @Autowired
+  private FacebookService facebookService;
 
-	@Autowired
-	TelegramMessage telegramMess;
+  @Autowired
+  private TelegramMessage telegramMess;
 
-	/* BTC or BTCUSDT or ... */
-	private String symbolCompare = "BTC";
+  /* BTC or BTCUSDT or ... */
+  private String symbolCompare = "BTC";
 
-	private BinanceApi api = new BinanceApi();
-	private Set<String> symbolWorking = new HashSet<String>();
-	private Set<String> symbolToTrackDownTrend = new HashSet<String>();
-	private Map<String, LinkedList<BigDecimal>> mapPrice = new HashMap<String, LinkedList<BigDecimal>>();
-	private Map<String, Integer> signerPrice = new HashMap<String, Integer>();
-	private Logger logger = LoggerFactory.getLogger(ScanPriceController.class);
+  private BinanceApi api = new BinanceApi();
+  private Set<String> symbolWorking = new HashSet<String>();
+  private Set<String> symbolToTrackDownTrend = new HashSet<String>();
+  private Map<String, LinkedList<BigDecimal>> mapPrice = new HashMap<String, LinkedList<BigDecimal>>();
+  private Map<String, Integer> signerPrice = new HashMap<String, Integer>();
+  private Logger logger = LoggerFactory.getLogger(ScanPriceController.class);
 
-	public void scanSigner() {
-		try {
-			logger.info("Scan signer is working ***********************");
+  public void scanSigner() {
+    try {
+      logger.info("***");
+      Map<String, BigDecimal> maps = scanService.scanAll(api);
 
-			Map<String, BigDecimal> maps = scanService.scanAll(api);
+      for (String key : maps.keySet()) {
+        /* check price < 2$ and check name */
+        if (symbolWorking.isEmpty()) {
+          symbolWorking = scanService.filterPrice(maps, symbolCompare);
+        }
 
-			for (String key : maps.keySet()) {
-				/* check price < 2$ and check name */
-				if (symbolWorking.isEmpty()) {
-					symbolWorking = scanService.filterPrice(maps, symbolCompare);
-				}
+        if (!symbolWorking.contains(key)) {
+          continue;
+        }
 
-				if (!symbolWorking.contains(key)) {
-					continue;
-				}
+        /* not have value yet */
+        if (mapPrice.get(key) == null) {
+          LinkedList<BigDecimal> lstNew = new LinkedList<BigDecimal>();
+          lstNew.addLast(maps.get(key));
+          mapPrice.put(key, lstNew);
+          /* Up */
+        } else if (mapPrice.get(key).get(mapPrice.get(key).size() - 1).compareTo(maps.get(key)) < 0) {
+          LinkedList<BigDecimal> lstNew = mapPrice.get(key);
+          lstNew.addLast(maps.get(key));
+          if (lstNew.size() >= 0) {
+            lstNew.removeFirst();
+            // if (signerPrice.containsKey(key) &&
+            // scanService.IsUpTrend(lstNew)) {
+            // int size = lstNew.size();
+            List<BinanceCandlestick> kLine = scanService.getOldCandltick(new BinanceSymbol(key));
+            if (signerPrice.containsKey(key) && kLine != null) {
+              telegramMess.sendImg(getImageChart(kLine));
+              symbolToTrackDownTrend.add(key);
+              // symbolWorking.remove(key);
+              // facebookService.sendTextMessage("=> Coin đang tăng: " + key);
+              telegramMess.sendToChannel("=> Up: " + key + " https://www.binance.com/trade.html?symbol=" + key);
+              logger.info("Up: " + key);
+            }
+          }
+          mapPrice.put(key, lstNew);
+          /* Down */
+        } else if (mapPrice.get(key).get(mapPrice.get(key).size() - 1).compareTo(maps.get(key)) > 0) {
+          LinkedList<BigDecimal> lstNew = mapPrice.get(key);
+          lstNew.addLast(maps.get(key));
+          if (lstNew.size() >= 1) {
+            lstNew.removeFirst();
+          }
+          mapPrice.put(key, lstNew);
+          signerPrice.put(key, Constants.DOWN_TREND);
+        }
 
-				/* not have value yet */
-				if (mapPrice.get(key) == null) {
-					LinkedList<BigDecimal> lstNew = new LinkedList<BigDecimal>();
-					lstNew.addLast(maps.get(key));
-					mapPrice.put(key, lstNew);
-					/* Up */
-				} else if (mapPrice.get(key).get(mapPrice.get(key).size() - 1).compareTo(maps.get(key)) < 0) {
-					LinkedList<BigDecimal> lstNew = mapPrice.get(key);
-					lstNew.addLast(maps.get(key));
-					if (lstNew.size() >= 5) {
-						lstNew.removeFirst();
-						// if (signerPrice.containsKey(key) &&
-						// scanService.IsUpTrend(lstNew)) {
-						int size = lstNew.size();
-						if (signerPrice.containsKey(key)&& comparePriceChange(lstNew.get(size - 3), lstNew.get(size - 2), lstNew.get(size - 1))) {
-							symbolToTrackDownTrend.add(key);
-							//symbolWorking.remove(key);
-							// facebookService.sendTextMessage("=> Coin đang tăng: " + key);
-							telegramMess.sendToChannel("=> Coin đang tăng: " + key + " https://www.binance.com/trade.html?symbol=" + key);
-							logger.info("Up: " + key);
-						}
-					}
-					mapPrice.put(key, lstNew);
-					/* Down */
-				} else if (mapPrice.get(key).get(mapPrice.get(key).size() - 1).compareTo(maps.get(key)) > 0) {
-					LinkedList<BigDecimal> lstNew = mapPrice.get(key);
-					lstNew.addLast(maps.get(key));
-					if (lstNew.size() >= 5) {
-						lstNew.removeFirst();
-					}
-					mapPrice.put(key, lstNew);
-					signerPrice.put(key, Constants.DOWN_TREND);
-				}
+        /* check if symbol down */
 
-				/* check if symbol down */
+      }
+    } catch (Exception e) {
+      logger.error("ScanPriceController Error: {}", e);
+    } catch (BinanceApiException e) {
+      e.printStackTrace();
+    }
+  }
 
-			}
-		} catch (Exception e) {
-			logger.error("ScanPriceController Error: {}", e);
-		}
-	}
-	
-	public Boolean comparePriceChange(BigDecimal num1, BigDecimal num2, BigDecimal num3) {
-		MathContext mc = new MathContext(2, RoundingMode.HALF_UP);
-		if (num3.divide(num2.subtract(num1), mc).compareTo(new BigDecimal("3")) >= 0) {
-			return true;
-		}
-		return false;
-	}
+  public Boolean comparePriceChange(BigDecimal num1, BigDecimal num2, BigDecimal num3) {
+    MathContext mc = new MathContext(2, RoundingMode.HALF_UP);
+    if (num3.divide(num2.subtract(num1), mc).compareTo(new BigDecimal("4")) >= 0) {
+      return true;
+    }
+    return false;
+  }
 
-	/*
-	 * public void scanPrice() { try { Map<String, BigDecimal> maps =
-	 * scanService.scanAll(api); for (String key : maps.keySet()) { check name if
-	 * (!scanService.filterName(key, symbolCompare)) { continue; } check price <
-	 * 2$ if (!scanService.filterPrice(maps.get(key))) { continue; } not have
-	 * value yet if (mapPrice.get(key) == null) { List<BigDecimal> lstNew = new
-	 * ArrayList<>(); lstNew.add(maps.get(key)); mapPrice.put(key, lstNew); } else
-	 * if (mapPrice.get(key).get(mapPrice.get(key).size() -
-	 * 1).compareTo(maps.get(key)) < 0) { List<BigDecimal> lstNew =
-	 * mapPrice.get(key); lstNew.add(maps.get(key)); if (lstNew.size() >= 5) {
-	 * facebookService.sendTextMessage("=> Coin đang tăng: " + key);
-	 * mapPrice.put(key, null); } else { mapPrice.put(key, lstNew); } } else if
-	 * (mapPrice.get(key).get(mapPrice.get(key).size() -
-	 * 1).compareTo(maps.get(key)) > 0) { if (mapPrice.get(key).size() == 4) {
-	 * facebookService.sendTextMessage("=> Coin đang giảm: " + key); }
-	 * mapPrice.put(key, null); } } } catch (Exception e) {
-	 * logger.error("ScanPriceController Error: {}", e); } }
-	 */
+  public File getImageChart(List<BinanceCandlestick> candlestickData) throws IOException {
+    CandlestickChart chart = new CandlestickChart("Candle Stick Chart", createDataset(candlestickData));
+    chart.pack();
+    RefineryUtilities.centerFrameOnScreen(chart);
+    chart.setVisible(true);
+    BufferedImage img = new BufferedImage(chart.getWidth(), chart.getHeight(), BufferedImage.TYPE_INT_RGB);
+    chart.paint(img.getGraphics());
+    File outputfile = new File("D:/temp/saved.png");
+    ImageIO.write(img, "png", outputfile);
+    return outputfile;
+  }
 
+
+
+  public DefaultHighLowDataset createDataset(List<BinanceCandlestick> candlestickData) {
+    int serice = candlestickData.size();
+
+    Date[] date = new Date[serice];
+    double[] high = new double[serice];
+    double[] low = new double[serice];
+    double[] open = new double[serice];
+    double[] close = new double[serice];
+    double[] volume = new double[serice];
+
+    for (int i = 0; i < serice; i++) {
+      BinanceCandlestick can = candlestickData.get(i);
+      date[i] = new Date(can.getOpenTime());
+      high[i] = can.getHigh().doubleValue();
+      low[i] = can.getLow().doubleValue();
+      open[i] = can.getOpen().doubleValue();
+      close[i] = can.getClose().doubleValue();
+      volume[i] = can.getVolume().doubleValue();
+    }
+
+    DefaultHighLowDataset data = new DefaultHighLowDataset("", date, high, low, open, close, volume);
+    return data;
+  }
 }
