@@ -71,9 +71,9 @@ public class ScanAllSymbol {
 	public List<BinanceCandlestick> getOldCandltick(BinanceSymbol symbol) throws BinanceApiException {
 	  BinanceApi api = new BinanceApi();
 	  MathContext mc = new MathContext(2, RoundingMode.HALF_UP);
-	  List<BinanceCandlestick> kLine = api.klines(symbol, BinanceInterval.ONE_MIN, 5, null);
-	  BinanceCandlestick candl1 = kLine.get(0);
-      BinanceCandlestick candl2 = kLine.get(1);
+	  List<BinanceCandlestick> kLine = api.klines(symbol, BinanceInterval.FIVE_MIN, 5, null);
+	  BinanceCandlestick candl1 = kLine.get(kLine.size() - 3);
+      BinanceCandlestick candl2 = kLine.get(kLine.size() - 2);
       if (candl1.getClose().compareTo(candl1.getOpen()) < 0 || candl2.getClose().compareTo(candl2.getOpen()) < 0) {
         return null;
       }
