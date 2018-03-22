@@ -83,7 +83,7 @@ public class ScanPriceController {
             // int size = lstNew.size();
             List<BinanceCandlestick> kLine = scanService.getOldCandltick(new BinanceSymbol(key));
             if (signerPrice.containsKey(key) && kLine != null) {
-              telegramMess.sendImg(getImageChart(kLine));
+              telegramMess.postMultipart(getImageChart(kLine, key));
               symbolToTrackDownTrend.add(key);
               // symbolWorking.remove(key);
               // facebookService.sendTextMessage("=> Coin đang tăng: " + key);
@@ -121,15 +121,18 @@ public class ScanPriceController {
     return false;
   }
 
-  public File getImageChart(List<BinanceCandlestick> candlestickData) throws IOException {
-    CandlestickChart chart = new CandlestickChart("Candle Stick Chart", createDataset(candlestickData));
+  public File getImageChart(List<BinanceCandlestick> candlestickData, String symbol) throws IOException {
+    CandlestickChart chart = new CandlestickChart(symbol, createDataset(candlestickData));
     chart.pack();
     RefineryUtilities.centerFrameOnScreen(chart);
     chart.setVisible(true);
+    
     BufferedImage img = new BufferedImage(chart.getWidth(), chart.getHeight(), BufferedImage.TYPE_INT_RGB);
     chart.paint(img.getGraphics());
+    
     File outputfile = new File("D:/temp/saved.png");
     ImageIO.write(img, "png", outputfile);
+    chart.dispose();
     return outputfile;
   }
 

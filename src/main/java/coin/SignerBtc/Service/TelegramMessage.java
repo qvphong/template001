@@ -23,11 +23,12 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 @Component
-public class TelegramMessage extends TelegramLongPollingBot {
+public class TelegramMessage {
   private final Logger logger = LoggerFactory.getLogger(TelegramMessage.class);
   private final String token = "";
   private final String chatId = "";
   private final String url = "https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chatId + "&text=";
+  private static final String urlPostPhoto = "https://api.telegram.org/bot/sendPhoto";
   private RestTemplate rest = new RestTemplate();
 
   public Boolean sendToChannel(String mess) {
@@ -39,41 +40,48 @@ public class TelegramMessage extends TelegramLongPollingBot {
     return false;
   }
 
-  @Override
-  public String getBotToken() {
-    return "";
-  }
+//  @Override
+//  public String getBotToken() {
+//    return "";
+//  }
+//
+//  public void sendImg(File img) {
+//    logger.info("Send photo to channel. ");
+//    SendPhoto msg = new SendPhoto().setChatId(chatId).setNewPhoto(img);
+//    try {
+//      sendPhoto(msg); // Call method to send the photo
+//    } catch (TelegramApiException e) {
+//      e.printStackTrace();
+//    }
+//  }
+//
+//  public void onUpdateReceived(Update arg0) {
+//    // TODO Auto-generated method stub
+//
+//  }
 
-  public void sendImg(File img) {
-    logger.info("Send photo to channel. ");
-    SendPhoto msg = new SendPhoto().setChatId(chatId).setNewPhoto(img);
-    try {
-      sendPhoto(msg); // Call method to send the photo
-    } catch (TelegramApiException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public void onUpdateReceived(Update arg0) {
-    // TODO Auto-generated method stub
-
-  }
-
-  public String getBotUsername() {
-    return "@signershank_bot";
-  }
+//  public String getBotUsername() {
+//    return "@signershank_bot";
+//  }
 
   public void postMultipart(File file) throws ClientProtocolException, IOException {
-    HttpPost post = new HttpPost("http://echo.200please.com");
-    String message = "This is a multipart post";
+    HttpPost post = new HttpPost(urlPostPhoto);
     MultipartEntityBuilder builder = MultipartEntityBuilder.create();
     builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-    builder.addBinaryBody("upfile", file, ContentType.DEFAULT_BINARY, file.getName());
-    builder.addTextBody("text", message, ContentType.DEFAULT_BINARY);
+    builder.addBinaryBody("photo", file, ContentType.DEFAULT_BINARY, file.getName());
+    builder.addTextBody("chat_id", "-1001371816162", ContentType.DEFAULT_BINARY);
 
     HttpEntity entity = builder.build();
     post.setEntity(entity);
     CloseableHttpClient httpclient = HttpClients.createDefault();
     HttpResponse response = httpclient.execute(post);
+    if (response.getStatusLine().getStatusCode() == 200) {
+      logger.info("Send photo oke. ");
+    } else {
+      logger.info("Send photo false. ");
+    }
+  }
+  
+  public static void main(String[] args) throws ClientProtocolException, IOException {
   }
 }

@@ -1,5 +1,6 @@
 package coin.SignerBtc.Service;
 
+import javax.swing.JFrame;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -9,7 +10,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.DefaultHighLowDataset;
 import org.jfree.ui.ApplicationFrame;
 
-public class CandlestickChart extends ApplicationFrame {
+public class CandlestickChart extends JFrame {
 
   /**
    * 
@@ -19,7 +20,7 @@ public class CandlestickChart extends ApplicationFrame {
   public CandlestickChart(String title, DefaultHighLowDataset dataset) {
     super(title);
 //    final DefaultHighLowDataset dataset = createDataset();
-    final JFreeChart chart = createChart(dataset);
+    final JFreeChart chart = createChart(title, dataset);
     chart.getXYPlot().setOrientation(PlotOrientation.VERTICAL);
     XYPlot plot = chart.getXYPlot();
     NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
@@ -29,8 +30,8 @@ public class CandlestickChart extends ApplicationFrame {
     setContentPane(chartPanel);
   }
 
-  private JFreeChart createChart(final DefaultHighLowDataset dataset) {
-    final JFreeChart chart = ChartFactory.createCandlestickChart("Candlestick Demo", "Time", "Value", dataset, true);
+  private JFreeChart createChart(String title, final DefaultHighLowDataset dataset) {
+    final JFreeChart chart = ChartFactory.createCandlestickChart(title, "Time", "Value", dataset, true);
     return chart;
   }
 
