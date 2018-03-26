@@ -87,7 +87,7 @@ public class ScanPriceController {
               symbolToTrackDownTrend.add(key);
               // symbolWorking.remove(key);
               // facebookService.sendTextMessage("=> Coin đang tăng: " + key);
-              telegramMess.sendToChannel("=> Up: " + key + " https://www.binance.com/trade.html?symbol=" + key);
+              telegramMess.sendToChannel("=> Up: " + key + " https://www.binance.com/trade.html?symbol=" + key.subSequence(0, key.length() - 3) + "_BTC");
               logger.info("Up: " + key);
             }
           }

@@ -36,7 +36,7 @@ public class ScanAllSymbol {
 	public Set<String> filterPrice(Map<String, BigDecimal> maps, String symbol) {
 		Set<String> symbols = new HashSet<String>();
 		for (String key : maps.keySet()) {
-			if (key.contains(symbol) && maps.get(key).compareTo(new BigDecimal("0.0002294")) < 0) {
+			if (key.contains(symbol) && maps.get(key).compareTo(new BigDecimal("0.002")) < 0) {
 				symbols.add(key);
 			}
 		}
@@ -67,22 +67,36 @@ public class ScanAllSymbol {
 		}
 		return true;
 	}
-	
+
 	public List<BinanceCandlestick> getOldCandltick(BinanceSymbol symbol) throws BinanceApiException {
-	  BinanceApi api = new BinanceApi();
-	  MathContext mc = new MathContext(2, RoundingMode.HALF_UP);
-	  List<BinanceCandlestick> kLine = api.klines(symbol, BinanceInterval.FIVE_MIN, 5, null);
-	  BinanceCandlestick candl1 = kLine.get(kLine.size() - 3);
-      BinanceCandlestick candl2 = kLine.get(kLine.size() - 2);
-      if (candl1.getClose().compareTo(candl1.getOpen()) < 0 || candl2.getClose().compareTo(candl2.getOpen()) < 0) {
-        return null;
-      }
-	  BigDecimal sub1 = candl1.getClose().subtract(candl1.getOpen());
-	  BigDecimal mid1 = candl1.getClose().subtract(candl1.getOpen()).divide(new BigDecimal("2"), mc);
-	  BigDecimal sub2 = candl2.getClose().subtract(candl2.getOpen());
-	  if (sub1.compareTo(new BigDecimal(0)) != 0 && sub2.divide(sub1, mc).intValue() >= 2 && candl2.getOpen().compareTo(mid1) > 0) {
-	    return kLine;
-	  }
-	  return null;
+		BinanceApi api = new BinanceApi();
+		MathContext mc = new MathContext(2, RoundingMode.HALF_UP);
+		List<BinanceCandlestick> kLine = api.klines(symbol, BinanceInterval.FIFTEEN_MIN, 10, null);
+		BinanceCandlestick candl1 = kLine.get(kLine.size() - 3);
+		BinanceCandlestick candl2 = kLine.get(kLine.size() - 2);
+		if (candl1.getVolume().compareTo(new BigDecimal(0)) != 0 && (candl2.getVolume().divide(candl1.getVolume(), mc)).compareTo(new BigDecimal(2)) >= 0) {
+			if (candl1.getClose().compareTo(candl1.getOpen()) < 0 || candl2.getClose().compareTo(candl2.getOpen()) < 0) {
+				return null;
+			}
+			BigDecimal sub1 = candl1.getClose().subtract(candl1.getOpen());
+			BigDecimal mid1 = candl1.getClose().subtract(candl1.getOpen()).divide(new BigDecimal("2"), mc);
+			BigDecimal sub2 = candl2.getClose().subtract(candl2.getOpen());
+			if (sub1.compareTo(new BigDecimal(0)) != 0 && sub2.divide(sub1, mc).intValue() >= 2 && candl2.getOpen().compareTo(mid1) > 0) {
+				if (chechMinOk(kLine)) {
+					return kLine;
+				}
+			}
+		}
+		return null;
+	}
+
+	public Boolean chechMinOk(List<BinanceCandlestick> kLine) {
+		BigDecimal min = kLine.get(kLine.size() - 3).getClose();
+		for (int i = kLine.size() - 6; i >= 0; i--) {
+			if (kLine.get(i).getClose().compareTo(min) <= 0) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
