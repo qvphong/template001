@@ -19,7 +19,10 @@ import org.jfree.ui.RefineryUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 import coin.SignerBtc.Service.CandlestickChart;
 import coin.SignerBtc.Service.ScanAllSymbol;
 import coin.SignerBtc.Service.TelegramMessage;
@@ -30,6 +33,7 @@ import com.webcerebrium.binance.datatype.BinanceCandlestick;
 import com.webcerebrium.binance.datatype.BinanceSymbol;
 
 @Controller
+@RequestMapping(value = "/scan")
 public class ScanPriceController {
 
   @Autowired
@@ -48,7 +52,8 @@ public class ScanPriceController {
   private Map<String, Integer> signerPrice = new HashMap<String, Integer>();
   private Logger logger = LoggerFactory.getLogger(ScanPriceController.class);
 
-  public void scanSigner() {
+  @RequestMapping(value = "/signer")
+  public Object scanSigner() {
     try {
       logger.info("***");
       Map<String, BigDecimal> maps = scanService.scanAll(api);
@@ -104,9 +109,12 @@ public class ScanPriceController {
       }
     } catch (Exception e) {
       logger.error("ScanPriceController Error: {}", e);
+      return new ResponseEntity<String>("error", HttpStatus.INTERNAL_SERVER_ERROR);
     } catch (BinanceApiException e) {
       e.printStackTrace();
+      return new ResponseEntity<String>("error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    return new ResponseEntity<String>("ok", HttpStatus.OK);
   }
 
   public Boolean comparePriceChange(BigDecimal num1, BigDecimal num2, BigDecimal num3) {
@@ -126,7 +134,7 @@ public class ScanPriceController {
     BufferedImage img = new BufferedImage(chart.getWidth(), chart.getHeight(), BufferedImage.TYPE_INT_RGB);
     chart.paint(img.getGraphics());
     
-    File outputfile = new File("D:/temp/saved.png");
+    File outputfile = new File("./saved.png");
     ImageIO.write(img, "png", outputfile);
     chart.dispose();
     return outputfile;
