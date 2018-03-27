@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import coin.SignerBtc.Service.CandlestickChart;
-import coin.SignerBtc.Service.FacebookService;
 import coin.SignerBtc.Service.ScanAllSymbol;
 import coin.SignerBtc.Service.TelegramMessage;
 import coin.SignerBtc.Utils.Constants;
@@ -35,9 +34,6 @@ public class ScanPriceController {
 
   @Autowired
   private ScanAllSymbol scanService;
-
-  @Autowired
-  private FacebookService facebookService;
 
   @Autowired
   private TelegramMessage telegramMess;
