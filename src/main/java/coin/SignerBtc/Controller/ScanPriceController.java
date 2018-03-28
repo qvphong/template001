@@ -3,8 +3,6 @@ package coin.SignerBtc.Controller;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.swing.JPanel;
 import org.jfree.data.xy.DefaultHighLowDataset;
 import org.jfree.ui.RefineryUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,7 +128,7 @@ public class ScanPriceController {
     return false;
   }
 
-  public static File getImageChart(List<BinanceCandlestick> candlestickData, String symbol) throws IOException {
+  public File getImageChart(List<BinanceCandlestick> candlestickData, String symbol) throws IOException {
     CandlestickChart chart = new CandlestickChart(symbol, createDataset(candlestickData));
     
     chart.setBackground(Color.WHITE);
@@ -150,11 +147,9 @@ public class ScanPriceController {
     return outputfile;
   }
 
-  public static void main(String[] args) throws BinanceApiException, IOException {
-    System.setProperty("java.awt.headless", "false");
+  public void test() throws BinanceApiException, IOException {
     List<BinanceCandlestick> kLine = (new BinanceApi()).klines(new BinanceSymbol("BTCUSDT"), BinanceInterval.FIFTEEN_MIN, 7, null);
-    getImageChart(kLine, "BTCUSDT");
-    
+    telegramMess.postMultipart(getImageChart(kLine, "BTCUSDT"));
   }
 
   public static DefaultHighLowDataset createDataset(List<BinanceCandlestick> candlestickData) {

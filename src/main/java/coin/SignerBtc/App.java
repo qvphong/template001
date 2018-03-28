@@ -21,7 +21,7 @@ public class App {
 	public static void main(String[] args) {
 //	  SpringApplication.run(App.class, args);
 	  SpringApplicationBuilder builder = new SpringApplicationBuilder(App.class);
-	  builder.headless(true).run(args);
+	  builder.headless(false).run(args);
 //	  System.setProperty("java.awt.headless", "false");
 	}
 }

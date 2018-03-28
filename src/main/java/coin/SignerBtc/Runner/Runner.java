@@ -6,36 +6,43 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import com.webcerebrium.binance.api.BinanceApiException;
 import coin.SignerBtc.Controller.ScanPriceController;
 
 @Component
 public class Runner implements CommandLineRunner {
 
-	@Autowired
-	ScanPriceController scanPriceController;
+  @Autowired
+  ScanPriceController scanPriceController;
 
-	private Logger logger = LoggerFactory.getLogger(Runner.class);
+  private Logger logger = LoggerFactory.getLogger(Runner.class);
 
-	public void run(String... arg0) {
-		try {
-			while (true) {
-//				Boolean isUp = follow.getAllOrder();
-//				if (isUp != null) {
-//					if (isUp) {
-//						follow.sellLimit(api, follow.PriceToSellOrBuy);
-//					} else {
-//						follow.buyLimit(api, follow.PriceToSellOrBuy);
-//					}
-//				}
-				 scanPriceController.scanSigner();
-				Thread.sleep(60000*15);
-			}
-		} catch (Exception e) {
-			logger.error("ERROR Runner: {}", e);
-		}
-	}
+  public void run(String... arg0) {
 
-	@PostConstruct
-	public void contruct() {
-	}
+    try {
+      try {
+        scanPriceController.test();
+      } catch (BinanceApiException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      while (true) {
+        // Boolean isUp = follow.getAllOrder();
+        // if (isUp != null) {
+        // if (isUp) {
+        // follow.sellLimit(api, follow.PriceToSellOrBuy);
+        // } else {
+        // follow.buyLimit(api, follow.PriceToSellOrBuy);
+        // }
+        // }
+        scanPriceController.scanSigner();
+        Thread.sleep(60000 * 15);
+      }
+    } catch (Exception e) {
+      logger.error("ERROR Runner: {}", e);
+    }
+  }
+
+  @PostConstruct
+  public void contruct() {}
 }
