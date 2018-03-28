@@ -13,11 +13,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.jfree.data.xy.DefaultHighLowDataset;
 import org.jfree.ui.RefineryUtilities;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +49,7 @@ public class ScanPriceController {
   private Set<String> symbolToTrackDownTrend = new HashSet<String>();
   private Map<String, LinkedList<BigDecimal>> mapPrice = new HashMap<String, LinkedList<BigDecimal>>();
   private Map<String, Integer> signerPrice = new HashMap<String, Integer>();
-  private Logger logger = LoggerFactory.getLogger(ScanPriceController.class);
+  private Logger logger = Logger.getLogger(ScanPriceController.class.getName());
 
   @RequestMapping(value = "/signer")
   public Object scanSigner() {
@@ -108,7 +107,7 @@ public class ScanPriceController {
 
       }
     } catch (Exception e) {
-      logger.error("ScanPriceController Error: {}", e);
+      logger.warning("ScanPriceController Error: " + e);
       return new ResponseEntity<String>("error", HttpStatus.INTERNAL_SERVER_ERROR);
     } catch (BinanceApiException e) {
       e.printStackTrace();
