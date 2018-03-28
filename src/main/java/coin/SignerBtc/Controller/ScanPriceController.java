@@ -1,5 +1,10 @@
 package coin.SignerBtc.Controller;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.swing.JPanel;
 import org.jfree.data.xy.DefaultHighLowDataset;
 import org.jfree.ui.RefineryUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +35,7 @@ import coin.SignerBtc.Utils.Constants;
 import com.webcerebrium.binance.api.BinanceApi;
 import com.webcerebrium.binance.api.BinanceApiException;
 import com.webcerebrium.binance.datatype.BinanceCandlestick;
+import com.webcerebrium.binance.datatype.BinanceInterval;
 import com.webcerebrium.binance.datatype.BinanceSymbol;
 
 @Controller
@@ -124,24 +131,33 @@ public class ScanPriceController {
     return false;
   }
 
-  public File getImageChart(List<BinanceCandlestick> candlestickData, String symbol) throws IOException {
+  public static File getImageChart(List<BinanceCandlestick> candlestickData, String symbol) throws IOException {
     CandlestickChart chart = new CandlestickChart(symbol, createDataset(candlestickData));
+    
+    chart.setBackground(Color.WHITE);
+    chart.setUndecorated(true);
+    Component c = chart.getContentPane();
     chart.pack();
     RefineryUtilities.centerFrameOnScreen(chart);
-    chart.setVisible(true);
-    
-    BufferedImage img = new BufferedImage(chart.getWidth(), chart.getHeight(), BufferedImage.TYPE_INT_RGB);
-    chart.paint(img.getGraphics());
-    
+//    chart.setVisible(true);
+    BufferedImage img = new BufferedImage(c.getWidth(), c.getHeight(), BufferedImage.TYPE_INT_RGB);
+    Graphics g = img.getGraphics();
+    c.print(g);
+    g.dispose();
     File outputfile = new File("./saved.png");
     ImageIO.write(img, "png", outputfile);
     chart.dispose();
     return outputfile;
   }
 
+  public static void main(String[] args) throws BinanceApiException, IOException {
+    System.setProperty("java.awt.headless", "false");
+    List<BinanceCandlestick> kLine = (new BinanceApi()).klines(new BinanceSymbol("BTCUSDT"), BinanceInterval.FIFTEEN_MIN, 7, null);
+    getImageChart(kLine, "BTCUSDT");
+    
+  }
 
-
-  public DefaultHighLowDataset createDataset(List<BinanceCandlestick> candlestickData) {
+  public static DefaultHighLowDataset createDataset(List<BinanceCandlestick> candlestickData) {
     int serice = candlestickData.size();
 
     Date[] date = new Date[serice];
