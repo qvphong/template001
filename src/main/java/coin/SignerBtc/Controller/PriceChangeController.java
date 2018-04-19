@@ -58,7 +58,7 @@ public class PriceChangeController {
           if (change > currChange) {
             if (Math.abs(change - currChange) >= 1) {
               System.out.println(change + " > " + currChange);
-              telegramMess.sendToChannel("Binance " + symbol + " tăng so với giá mở cửa: " + change + " From: " + change);
+              telegramMess.sendToChannel("Binance " + symbol + " tăng so với giá mở cửa " + change + "% từ " + currChange + "%");
             }
           } 
 //          else {
